@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from pymilvus import MilvusClient
+
+from app.core.config import settings
+from app.core.database import engine
+
 
 app = FastAPI(
     title="MCP-RAG-Notebook API",
@@ -17,13 +23,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/health",tags=["系统"])
-async def health_check():
+
+@app.get("/health", tags=["系统"])
+async def health_check() -> dict[str, str]:
     return {
         "status": "ok",
         "service": "MCP-RAG-Notebook backend",
     }
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000,reload=True)
+
+@app.get("/health/database", tags=["系统"])
+async def database_health_check() -> dict[str, str]:
+    async with engine.connect() as connection:
+        await connection.execute(text("SELECT 1"))
+
+    return {
+        "status": "ok",
+        "database": "postgresql",
+    }
+
+
+@app.get("/health/milvus", tags=["系统"])
+def milvus_health_check() -> dict:
+    client = MilvusClient(uri=settings.milvus_uri)
+
+    try:
+        collections = client.list_collections()
+
+        return {
+            "status": "ok",
+            "database": "milvus",
+            "collection": settings.milvus_collection,
+            "collection_exists": (
+                settings.milvus_collection in collections
+            ),
+        }
+    finally:
+        client.close()
