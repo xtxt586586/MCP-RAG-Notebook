@@ -1,3 +1,4 @@
+#知识库模型，存储知识库信息
 from datetime import datetime
 from uuid import UUID, uuid4
 

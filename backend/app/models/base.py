@@ -1,3 +1,4 @@
+#统一命名能让 Alembic 更稳定地识别约束变化
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 

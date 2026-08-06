@@ -1,3 +1,4 @@
+#将基础设施依赖（数据库、缓存、向量库、对象存储）的配置统一对外暴露
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict

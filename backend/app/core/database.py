@@ -1,3 +1,4 @@
+#它负责建立 FastAPI 与 PostgreSQL 之间的连接。
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (

@@ -1,3 +1,4 @@
+#用户认证基础表
 from datetime import datetime
 from uuid import UUID, uuid4
 

@@ -5,12 +5,14 @@ from pymilvus import MilvusClient
 
 from app.core.config import settings
 from app.core.database import engine
-
+from app.api.router import api_router
 
 app = FastAPI(
     title="MCP-RAG-Notebook API",
     version="0.1.0",
 )
+
+app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
