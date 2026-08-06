@@ -10,6 +10,10 @@ from app.core.database import get_db
 from app.models import Document, IngestionTask, KnowledgeBase
 from app.services.storage.minio_service import minio_storage
 
+from app.services.parsing.parsing_service import (
+    document_parsing_service,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -142,3 +146,63 @@ async def upload_document(
         "size_bytes": document.size_bytes,
         "status": document.status,
     }
+
+
+
+@router.post("/{document_id}/parse")
+async def parse_uploaded_document(
+    document_id: UUID,
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    result = await db.execute(
+        select(Document)
+        .join(
+            KnowledgeBase,
+            Document.knowledge_base_id == KnowledgeBase.id,
+        )
+        .where(
+            Document.id == document_id,
+            KnowledgeBase.user_id == user_id,
+        )
+    )
+
+    document = result.scalar_one_or_none()
+
+    if document is None:
+        raise HTTPException(
+            status_code=404,
+            detail="文档不存在或不属于当前用户",
+        )
+
+    allowed_statuses = {
+        "UPLOADED",
+        "PARSE_FAILED",
+        "PARSED",
+    }
+
+    if document.status not in allowed_statuses:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"当前文档状态不允许解析："
+                f"{document.status}"
+            ),
+        )
+
+    try:
+        return await document_parsing_service.parse(
+            db,
+            user_id=user_id,
+            document=document,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="文档解析失败",
+        ) from exc

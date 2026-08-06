@@ -46,6 +46,24 @@ class MinioStorageService:
             content_type=content_type,
         )
 
+    def _download_bytes_sync(self, object_name: str) -> bytes:
+        response = self.client.get_object(
+            self.bucket_name,
+            object_name,
+        )
+
+        try:
+            return response.read()
+        finally:
+            response.close()
+            response.release_conn()
+
+    async def download_bytes(self, object_name: str) -> bytes:
+        return await run_in_threadpool(
+            self._download_bytes_sync,
+            object_name,
+        )
+
     async def delete_object(self, object_name: str) -> None:
         await run_in_threadpool(
             self.client.remove_object,
