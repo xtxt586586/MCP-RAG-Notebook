@@ -31,5 +31,9 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    embedding_model: str = "BAAI/bge-m3"
+    embedding_batch_size: int = 4
+    embedding_max_length: int = 1024
+    embedding_offline: bool = True
 
 settings = Settings()

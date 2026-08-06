@@ -14,6 +14,9 @@ from app.services.parsing.parsing_service import (
     document_parsing_service,
 )
 
+from app.services.indexing.document_indexing_service import (
+    document_indexing_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -205,4 +208,64 @@ async def parse_uploaded_document(
         raise HTTPException(
             status_code=500,
             detail="文档解析失败",
+        ) from exc
+
+
+
+@router.post("/{document_id}/index")
+async def index_parsed_document(
+    document_id: UUID,
+    user_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    result = await db.execute(
+        select(Document)
+        .join(
+            KnowledgeBase,
+            Document.knowledge_base_id == KnowledgeBase.id,
+        )
+        .where(
+            Document.id == document_id,
+            KnowledgeBase.user_id == user_id,
+        )
+    )
+
+    document = result.scalar_one_or_none()
+
+    if document is None:
+        raise HTTPException(
+            status_code=404,
+            detail="文档不存在或不属于当前用户",
+        )
+
+    allowed_statuses = {
+        "PARSED",
+        "EMBEDDING_FAILED",
+        "INDEXING_FAILED",
+        "READY",
+    }
+
+    if document.status not in allowed_statuses:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"当前文档状态不允许建立索引："
+                f"{document.status}"
+            ),
+        )
+
+    try:
+        return await document_indexing_service.index_document(
+            db,
+            document=document,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="文档向量化或索引失败",
         ) from exc
