@@ -1,4 +1,4 @@
-#将基础设施依赖（数据库、缓存、向量库、对象存储）的配置统一对外暴露
+#读取根目录的 .env
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -35,5 +35,44 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 4
     embedding_max_length: int = 1024
     embedding_offline: bool = True
+
+    deepseek_api_key: str
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_model: str = "deepseek-chat"
+    deepseek_timeout_seconds: float = 120.0
+
+    rag_default_top_k: int = 5
+    rag_max_context_chars: int = 12000
+
+    mcp_servers_config: str = str(
+        PROJECT_ROOT
+        / "mcp_servers"
+        / "servers.json"
+    )
+
+    mcp_agent_allowed_tools: str = (
+        "rag_notebook:search_knowledge_base,"
+        "filesystem:list_allowed_directories,"
+        "filesystem:list_directory,"
+        "filesystem:read_text_file,"
+        "filesystem:search_files,"
+        "fetch:fetch"
+    )
+
+    mcp_agent_max_steps: int = 4
+    mcp_tool_result_max_chars: int = 12000
+
+    mcp_client_allowed_tools: str = (
+        "rag_notebook:backend_health,"
+        "rag_notebook:search_knowledge_base,"
+        "filesystem:list_allowed_directories,"
+        "filesystem:list_directory,"
+        "filesystem:read_text_file,"
+        "filesystem:search_files,"
+        "filesystem:get_file_info,"
+        "fetch:fetch"
+    )
+
+    mcp_tool_timeout_seconds: float = 180.0
 
 settings = Settings()
