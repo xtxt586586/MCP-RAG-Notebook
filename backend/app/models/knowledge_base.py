@@ -2,7 +2,14 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,6 +18,12 @@ from app.models.base import Base
 
 class KnowledgeBase(Base):
     __tablename__ = "knowledge_bases"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            name="uq_knowledge_bases_user_id",
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),

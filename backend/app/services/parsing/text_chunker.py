@@ -51,6 +51,20 @@ def create_chunks(
             if not text:
                 continue
 
+            start_seconds = float(
+                parsed_unit.metadata.get(
+                    "start_seconds",
+                    -1.0,
+                )
+            )
+
+            end_seconds = float(
+                parsed_unit.metadata.get(
+                    "end_seconds",
+                    -1.0,
+                )
+            )
+
             chunks.append(
                 {
                     "id": f"{document_id}:{chunk_index}",
@@ -61,10 +75,11 @@ def create_chunks(
                     "content": text,
                     "source_type": source_type,
                     "page_number": parsed_unit.page_number,
-                    "start_seconds": -1.0,
-                    "end_seconds": -1.0,
+                    "start_seconds": start_seconds,
+                    "end_seconds": end_seconds,
                     "metadata": {
                         "file_name": file_name,
+                        **parsed_unit.metadata,
                     },
                 }
             )

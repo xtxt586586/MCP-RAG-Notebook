@@ -44,6 +44,15 @@ class IngestionTask(Base):
         nullable=True,
     )
 
+    celery_task_id: Mapped[
+        str | None
+        ] = mapped_column(
+        String(100),
+        unique=True,
+        index=True,
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

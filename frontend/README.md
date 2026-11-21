@@ -1,5 +1,21 @@
 # React + TypeScript + Vite
 
+## 桌面端端到端测试
+
+首次运行需安装 Playwright 浏览器：
+
+```bash
+npx playwright install chromium-headless-shell
+```
+
+运行 3 条桌面端主流程：
+
+```bash
+npm run test:e2e
+```
+
+测试使用接口拦截，不依赖真实 DeepSeek、Milvus 或 MCP 外网服务。
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

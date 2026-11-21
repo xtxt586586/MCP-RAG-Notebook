@@ -53,6 +53,14 @@ class Document(Base):
         nullable=False,
     )
 
+    # Content-based deduplication matches the original RAGNotebook behavior.
+    # Nullable keeps legacy documents valid until they are re-uploaded.
+    content_md5: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+        index=True,
+    )
+
     status: Mapped[str] = mapped_column(
         String(32),
         default="PENDING",

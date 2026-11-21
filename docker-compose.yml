@@ -1,6 +1,94 @@
 name: mcp-rag-notebook
 
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mcp-rag-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      MILVUS_URI: http://milvus:19530
+      MINIO_ENDPOINT: minio:9000
+      RAG_BACKEND_URL: http://backend:8765
+      MCP_SERVERS_CONFIG: /app/mcp_servers/servers.json
+      FFMPEG_BINARY: ffmpeg
+      HF_HOME: /root/.cache/huggingface
+      HUGGINGFACE_HUB_CACHE: /root/.cache/huggingface/hub
+      NO_PROXY: 127.0.0.1,localhost,postgres,redis,milvus,minio,etcd,backend
+      no_proxy: 127.0.0.1,localhost,postgres,redis,milvus,minio,etcd,backend
+    command: [ "sh", "-c", "alembic upgrade head && python -m app.scripts.init_milvus && uvicorn app.main:app --host 0.0.0.0 --port 8765" ]
+    ports:
+      # Windows reserves the 8303-9002 range on this host, so expose the
+      # container's 8765 API on an unreserved host port.
+      - "18765:8765"
+    volumes:
+      - ${HF_CACHE_DIR:-hf_cache}:/root/.cache/huggingface
+      - ./mcp_servers:/app/mcp_servers:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/health')" ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mcp-rag-celery
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      MILVUS_URI: http://milvus:19530
+      MINIO_ENDPOINT: minio:9000
+      FFMPEG_BINARY: ffmpeg
+      HF_HOME: /root/.cache/huggingface
+      HUGGINGFACE_HUB_CACHE: /root/.cache/huggingface/hub
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info", "--pool=solo"]
+    volumes:
+      - ${HF_CACHE_DIR:-hf_cache}:/root/.cache/huggingface
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://127.0.0.1:18765}
+    container_name: mcp-rag-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
   postgres:
     image: postgres:16-alpine
     container_name: mcp-rag-postgres
@@ -10,7 +98,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -28,7 +116,7 @@ services:
     container_name: mcp-rag-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -68,8 +156,8 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:19000:9000"
+      - "127.0.0.1:19001:9001"
     volumes:
       - minio_data:/data
     healthcheck:
@@ -97,8 +185,8 @@ services:
       MINIO_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
       MINIO_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
     ports:
-      - "19530:19530"
-      - "9091:9091"
+      - "127.0.0.1:19530:19530"
+      - "127.0.0.1:9091:9091"
     volumes:
       - milvus_data:/var/lib/milvus
     depends_on:
@@ -125,3 +213,4 @@ volumes:
   etcd_data:
   minio_data:
   milvus_data:
+  hf_cache:

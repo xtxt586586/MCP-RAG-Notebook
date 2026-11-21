@@ -34,13 +34,14 @@ class BGEM3EmbeddingService:
         if local_path.exists():
             return str(local_path.resolve())
 
-        if settings.embedding_offline:
-            return snapshot_download(
-                repo_id=configured_model,
-                local_files_only=True,
-            )
-
-        return configured_model
+        # FlagEmbedding otherwise downloads the whole Hub repository, including
+        # unrelated ONNX exports and images, on a fresh machine. Keep the
+        # tokenizer, PyTorch weights and sparse/ColBERT projection weights.
+        return snapshot_download(
+            repo_id=configured_model,
+            local_files_only=settings.embedding_offline,
+            ignore_patterns=["onnx/*", "imgs/*", "*.jpg", "*.png", "*.webp"],
+        )
 
     def _get_model(self) -> BGEM3FlagModel:
         if self._model is not None:

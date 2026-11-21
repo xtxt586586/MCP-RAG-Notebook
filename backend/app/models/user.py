@@ -25,6 +25,35 @@ class User(Base):
         nullable=False,
     )
 
+    display_name: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True,
+    )
+
+    phone: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+    )
+
+    gender: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    bio: Mapped[str | None] = mapped_column(
+        String(1000),
+        nullable=True,
+    )
+
+    avatar_url: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    agent_history_max_turns: Mapped[int | None] = mapped_column(
+        nullable=True,
+    )
+
     password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,

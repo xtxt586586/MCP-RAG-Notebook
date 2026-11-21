@@ -1,0 +1,44 @@
+{
+  "servers": {
+    "rag_notebook": {
+      "enabled": true,
+      "transport": "stdio",
+      "command": "${PYTHON_EXECUTABLE}",
+      "args": [
+        "${PROJECT_ROOT}/mcp_servers/rag_notebook/server.py"
+      ],
+      "env": {
+        "RAG_BACKEND_URL": "http://127.0.0.1:8765"
+      }
+    },
+    "filesystem": {
+      "enabled": false,
+      "transport": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${PROJECT_ROOT}/data/mcp_workspace"
+      ],
+      "env": {}
+    },
+    "fetch": {
+      "enabled": false,
+      "transport": "stdio",
+      "command": "${PYTHON_EXECUTABLE}",
+      "args": [
+        "${PROJECT_ROOT}/mcp_servers/fetch/server.py"
+      ],
+      "env": {}
+    },
+    "multimodal_ingestion": {
+      "enabled": true,
+      "transport": "stdio",
+      "command": "${PYTHON_EXECUTABLE}",
+      "args": [
+        "${PROJECT_ROOT}/mcp_servers/multimodal_ingestion/server.py"
+      ],
+      "env": {}
+    }
+  }
+}
