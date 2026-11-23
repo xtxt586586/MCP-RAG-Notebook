@@ -1,0 +1,577 @@
+{
+  "created_at": "2026-11-21T03:57:20.303268+00:00",
+  "dataset_description": "Synthetic multi-chunk demo corpus. Each expected answer and relevant chunk was checked against its paired Markdown source; this is a smoke-test set, not an independent or production benchmark.",
+  "labels_sha256": "da2c54210227f3c5767c8365f415c79c5573832c2a30025497e932c0641507b0",
+  "embedding_model": "/root/.cache/huggingface/prepared/bge-m3",
+  "reranker_model": "/root/.cache/huggingface/prepared/reranker",
+  "ready_document_count": 3,
+  "ready_chunk_count": 9,
+  "scope": "chunk-level; exact indexed chunk IDs (document UUID and chunk index)",
+  "timing": "warm models; per-query embedding plus retrieval; rerank variant adds reranker time; sequential runs",
+  "k": 1,
+  "candidate_limit": 6,
+  "case_count": 30,
+  "variants": {
+    "dense": {
+      "recall_at_k": 0.7333333333333333,
+      "mrr_at_k": 0.7333333333333333,
+      "latency_median_ms": 382.365,
+      "cases": [
+        {
+          "id": "lib01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 2693.63
+        },
+        {
+          "id": "lib02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 2662.02
+        },
+        {
+          "id": "lib03",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 3039.91
+        },
+        {
+          "id": "lib04",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 709.99
+        },
+        {
+          "id": "lib05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 470.2
+        },
+        {
+          "id": "lib06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 453.88
+        },
+        {
+          "id": "lib07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 377.95
+        },
+        {
+          "id": "lib08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 435.03
+        },
+        {
+          "id": "lib09",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 353.76
+        },
+        {
+          "id": "lib10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 315.85
+        },
+        {
+          "id": "shop01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 368.65
+        },
+        {
+          "id": "shop02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 408.19
+        },
+        {
+          "id": "shop03",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 335.44
+        },
+        {
+          "id": "shop04",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 412.34
+        },
+        {
+          "id": "shop05",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 367.95
+        },
+        {
+          "id": "shop06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 308.3
+        },
+        {
+          "id": "shop07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 440.35
+        },
+        {
+          "id": "shop08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 410.47
+        },
+        {
+          "id": "shop09",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 322.42
+        },
+        {
+          "id": "shop10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 331.64
+        },
+        {
+          "id": "event01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 410.72
+        },
+        {
+          "id": "event02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 311.52
+        },
+        {
+          "id": "event03",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 317.1
+        },
+        {
+          "id": "event04",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 368.3
+        },
+        {
+          "id": "event05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 386.78
+        },
+        {
+          "id": "event06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 337.22
+        },
+        {
+          "id": "event07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 543.12
+        },
+        {
+          "id": "event08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 493.38
+        },
+        {
+          "id": "event09",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 358.1
+        },
+        {
+          "id": "event10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 375.42
+        }
+      ]
+    },
+    "hybrid": {
+      "recall_at_k": 0.8666666666666667,
+      "mrr_at_k": 0.8666666666666667,
+      "latency_median_ms": 382.145,
+      "cases": [
+        {
+          "id": "lib01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 2570.67
+        },
+        {
+          "id": "lib02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 2601.68
+        },
+        {
+          "id": "lib03",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 2976.93
+        },
+        {
+          "id": "lib04",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 702.02
+        },
+        {
+          "id": "lib05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 464.91
+        },
+        {
+          "id": "lib06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 443.23
+        },
+        {
+          "id": "lib07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 376.33
+        },
+        {
+          "id": "lib08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 440.86
+        },
+        {
+          "id": "lib09",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 347.92
+        },
+        {
+          "id": "lib10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 314.94
+        },
+        {
+          "id": "shop01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 379.48
+        },
+        {
+          "id": "shop02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 407.71
+        },
+        {
+          "id": "shop03",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 332.67
+        },
+        {
+          "id": "shop04",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 411.99
+        },
+        {
+          "id": "shop05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 365.8
+        },
+        {
+          "id": "shop06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 305.96
+        },
+        {
+          "id": "shop07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 439.64
+        },
+        {
+          "id": "shop08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 406.75
+        },
+        {
+          "id": "shop09",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 321.99
+        },
+        {
+          "id": "shop10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 325.45
+        },
+        {
+          "id": "event01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 398.67
+        },
+        {
+          "id": "event02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 307.76
+        },
+        {
+          "id": "event03",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 340.8
+        },
+        {
+          "id": "event04",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 367.99
+        },
+        {
+          "id": "event05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 384.81
+        },
+        {
+          "id": "event06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 336.93
+        },
+        {
+          "id": "event07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 541.81
+        },
+        {
+          "id": "event08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 494.04
+        },
+        {
+          "id": "event09",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 355.51
+        },
+        {
+          "id": "event10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 374.51
+        }
+      ]
+    },
+    "hybrid_rerank": {
+      "recall_at_k": 0.9666666666666667,
+      "mrr_at_k": 0.9666666666666667,
+      "latency_median_ms": 14214.49,
+      "cases": [
+        {
+          "id": "lib01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 19148.53
+        },
+        {
+          "id": "lib02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 21490.06
+        },
+        {
+          "id": "lib03",
+          "recall": 0.0,
+          "reciprocal_rank": 0.0,
+          "latency_ms": 19821.02
+        },
+        {
+          "id": "lib04",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 18017.76
+        },
+        {
+          "id": "lib05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13955.51
+        },
+        {
+          "id": "lib06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14842.88
+        },
+        {
+          "id": "lib07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14089.6
+        },
+        {
+          "id": "lib08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14210.5
+        },
+        {
+          "id": "lib09",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13759.23
+        },
+        {
+          "id": "lib10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14079.98
+        },
+        {
+          "id": "shop01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14495.17
+        },
+        {
+          "id": "shop02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13634.03
+        },
+        {
+          "id": "shop03",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14218.48
+        },
+        {
+          "id": "shop04",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14646.69
+        },
+        {
+          "id": "shop05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13711.02
+        },
+        {
+          "id": "shop06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13737.95
+        },
+        {
+          "id": "shop07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14643.05
+        },
+        {
+          "id": "shop08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14303.81
+        },
+        {
+          "id": "shop09",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13350.12
+        },
+        {
+          "id": "shop10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13847.37
+        },
+        {
+          "id": "event01",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14687.62
+        },
+        {
+          "id": "event02",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13576.71
+        },
+        {
+          "id": "event03",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13816.92
+        },
+        {
+          "id": "event04",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14954.75
+        },
+        {
+          "id": "event05",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14327.3
+        },
+        {
+          "id": "event06",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14106.81
+        },
+        {
+          "id": "event07",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 16052.98
+        },
+        {
+          "id": "event08",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14010.53
+        },
+        {
+          "id": "event09",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 13636.37
+        },
+        {
+          "id": "event10",
+          "recall": 1.0,
+          "reciprocal_rank": 1.0,
+          "latency_ms": 14336.78
+        }
+      ]
+    }
+  }
+}
