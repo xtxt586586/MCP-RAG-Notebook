@@ -3866,7 +3866,9 @@ html[data-theme="dark"] .secondary-button {
 }
 
 .chat-composer-options {
-  width: min(1080px, 100%);
+  display: flex;
+  justify-content: flex-end;
+  width: min(980px, 100%);
   margin: 0 auto 6px;
 }
 
@@ -3887,8 +3889,27 @@ html[data-theme="dark"] .secondary-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 4px 8px;
+  color: var(--muted);
   font-size: 13px;
+  white-space: nowrap;
   cursor: pointer;
+}
+
+.chat-knowledge-only input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  accent-color: #087eaf;
+  box-shadow: none;
+}
+
+.chat-knowledge-only:focus-within {
+  outline: 2px solid #087eaf;
+  outline-offset: 2px;
+  border-radius: 5px;
 }
 
 .chat-composer-row {
