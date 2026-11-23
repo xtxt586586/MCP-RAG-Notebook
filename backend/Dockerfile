@@ -24,8 +24,7 @@ WORKDIR /app
 
 COPY requirements.txt ./requirements.txt
 
-RUN pip install --upgrade pip \
-    && pip install uv \
+RUN pip install pip==26.3 uv==0.12.3 \
     && pip install \
         --index-url https://download.pytorch.org/whl/cpu \
         torch==2.13.0+cpu \

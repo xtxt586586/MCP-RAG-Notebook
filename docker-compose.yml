@@ -5,7 +5,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mcp-rag-backend
     restart: unless-stopped
     env_file:
       - .env
@@ -48,7 +47,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mcp-rag-celery
     restart: unless-stopped
     env_file:
       - .env
@@ -62,6 +60,8 @@ services:
       FFMPEG_BINARY: ffmpeg
       HF_HOME: /root/.cache/huggingface
       HUGGINGFACE_HUB_CACHE: /root/.cache/huggingface/hub
+      NO_PROXY: 127.0.0.1,localhost,postgres,redis,milvus,minio,etcd,backend
+      no_proxy: 127.0.0.1,localhost,postgres,redis,milvus,minio,etcd,backend
     command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info", "--pool=solo"]
     volumes:
       - ${HF_CACHE_DIR:-hf_cache}:/root/.cache/huggingface
@@ -81,7 +81,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://127.0.0.1:18765}
-    container_name: mcp-rag-frontend
     restart: unless-stopped
     ports:
       - "3000:80"
@@ -91,7 +90,6 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: mcp-rag-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -113,7 +111,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: mcp-rag-redis
     restart: unless-stopped
     ports:
       - "127.0.0.1:6379:6379"
@@ -127,7 +124,6 @@ services:
 
   etcd:
     image: quay.io/coreos/etcd:v3.5.18
-    container_name: mcp-rag-etcd
     restart: unless-stopped
     environment:
       ETCD_AUTO_COMPACTION_MODE: revision
@@ -148,8 +144,7 @@ services:
       retries: 5
 
   minio:
-    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
-    container_name: mcp-rag-minio
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-12-18T13-15-44Z}
     restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
@@ -174,7 +169,6 @@ services:
 
   milvus:
     image: milvusdb/milvus:v2.5.4
-    container_name: mcp-rag-milvus
     restart: unless-stopped
     command: ["milvus", "run", "standalone"]
     security_opt:
