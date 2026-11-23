@@ -25,6 +25,12 @@ jobs:
           python -m pip install -r requirements.txt
       - name: Run backend tests
         working-directory: backend
+        env:
+          DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
+          MINIO_ROOT_USER: test-user
+          MINIO_ROOT_PASSWORD: test-password
+          JWT_SECRET_KEY: test-only-secret-key-not-for-production
+          DEEPSEEK_API_KEY: test-placeholder
         run: python -m pytest -q
 
   frontend-checks:
