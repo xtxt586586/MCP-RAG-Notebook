@@ -78,13 +78,16 @@ class ChatRequest(BaseModel):
 
 class CitationSource(BaseModel):
     citation: str
-    document_id: str
-    chunk_id: str
-    chunk_index: int
-    file_name: str
+    document_id: str | None = None
+    chunk_id: str | None = None
+    chunk_index: int | None = None
+    file_name: str | None = None
     page_number: int | None = None
-    score: float
-    excerpt: str
+    score: float | None = None
+    excerpt: str | None = None
+    source_type: str | None = None
+    source_id: str | None = None
+    title: str | None = None
 
 
 class ChatResponse(BaseModel):
@@ -289,6 +292,7 @@ async def chat_with_knowledge_base(
         )
 
         result = await rag_service.answer(
+            db=db,
             user_id=str(current_user.id),
             knowledge_base_id=str(request.knowledge_base_id),
             query=request.question,
@@ -415,6 +419,7 @@ async def stream_chat_with_knowledge_base(
         )
 
         prepared = await rag_service.prepare_streaming_answer(
+            db=db,
             user_id=str(current_user.id),
             knowledge_base_id=str(request.knowledge_base_id),
             query=request.question,
@@ -470,27 +475,21 @@ async def stream_chat_with_knowledge_base(
             conversation.id
         )
 
-        # ✨ sources 事件增加 retrieval_mode
-        yield format_sse_event(
-            event="sources",
-            data={
-                "conversation_id": (
-                    conversation_id_text
-                ),
-                "query": prepared["query"],
-                "retrieval_query": (
-                    prepared["retrieval_query"]
-                ),
-                "sources": prepared["sources"],
-                "retrieval_mode": prepared["retrieval_mode"],
-            },
-        )
-
         fallback_answer = prepared.get(
             "fallback_answer"
         )
 
         if fallback_answer:
+            yield format_sse_event(
+                event="sources",
+                data={
+                    "conversation_id": conversation_id_text,
+                    "query": prepared["query"],
+                    "retrieval_query": prepared["retrieval_query"],
+                    "sources": prepared["sources"],
+                    "retrieval_mode": prepared["retrieval_mode"],
+                },
+            )
             await save_message(
                 db=db,
                 conversation=conversation,
@@ -547,17 +546,33 @@ async def stream_chat_with_knowledge_base(
             if not answer:
                 answer = "模型没有返回有效答案。"
 
+            sources = rag_service.sources_cited_in_answer(
+                answer,
+                prepared["sources"],
+            )
+
             # ✨ 保存 assistant 消息时使用 retrieval_mode
             await save_message(
                 db=db,
                 conversation=conversation,
                 role="assistant",
                 content=answer,
-                citations=prepared["sources"],
+                citations=sources,
                 metadata={
                     "retrieval_query": (
                         prepared["retrieval_query"]
                     ),
+                    "retrieval_mode": prepared["retrieval_mode"],
+                },
+            )
+
+            yield format_sse_event(
+                event="sources",
+                data={
+                    "conversation_id": conversation_id_text,
+                    "query": prepared["query"],
+                    "retrieval_query": prepared["retrieval_query"],
+                    "sources": sources,
                     "retrieval_mode": prepared["retrieval_mode"],
                 },
             )
@@ -569,6 +584,7 @@ async def stream_chat_with_knowledge_base(
                     "conversation_id": (
                         conversation_id_text
                     ),
+                    "sources": sources,
                 },
             )
 
@@ -578,6 +594,22 @@ async def stream_chat_with_knowledge_base(
                 "user_id=%s knowledge_base_id=%s",
                 current_user.id,
                 request.knowledge_base_id,
+            )
+
+            answer = "".join(answer_parts).strip()
+            sources = rag_service.sources_cited_in_answer(
+                answer,
+                prepared["sources"],
+            )
+            yield format_sse_event(
+                event="sources",
+                data={
+                    "conversation_id": conversation_id_text,
+                    "query": prepared["query"],
+                    "retrieval_query": prepared["retrieval_query"],
+                    "sources": sources,
+                    "retrieval_mode": prepared["retrieval_mode"],
+                },
             )
 
             yield format_sse_event(

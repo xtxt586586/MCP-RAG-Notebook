@@ -7,6 +7,15 @@ from app.services.rag.rag_service import RAGService
 from app.services.rag import rag_service as rag_module
 
 
+@pytest.fixture(autouse=True)
+def isolate_query_embedding(monkeypatch):
+    """Routing unit tests must not download a model or depend on network access."""
+    async def fake_encode(texts):
+        return [[1.0, 2.0] for _ in texts], [{7: 0.5} for _ in texts]
+
+    monkeypatch.setattr(rag_module.bge_m3_embedding_service, "encode", fake_encode)
+
+
 @pytest.mark.asyncio
 async def test_auto_context_skips_hybrid_search_below_threshold(monkeypatch) -> None:
     service = RAGService()

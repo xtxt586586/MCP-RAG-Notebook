@@ -158,6 +158,7 @@ function sourceLabel(
 ) {
   return (
     source.file_name ||
+    source.title ||
     source.document_id ||
     '知识库来源'
   )
@@ -170,9 +171,9 @@ function uniqueSources(
 
   return sources.filter((source) => {
     const key = String(
-      source.document_id ??
+      source.citation ??
+        source.document_id ??
         source.file_name ??
-        source.citation ??
         JSON.stringify(source),
     )
 
@@ -1338,15 +1339,22 @@ ${displayQuestion}`
                         </strong>
 
                         <ul>
-                          {message.sources.map(
-                            (source, index) => (
+                          {message.sources.map((source, index) => {
+                            const sourceDocumentId =
+                              source.document_id ??
+                              (source.source_type === 'document'
+                                ? source.source_id
+                                : undefined)
+
+                            return (
                               <li
                                 key={`${sourceLabel(
                                   source,
                                 )}-${index}`}
                               >
-                                {source.document_id && onOpenSource ? (
-                                  <button type="button" className="citation-source-link" onClick={() => onOpenSource(source.document_id!, source.chunk_index)}>
+                                {source.citation && <span>{source.citation} </span>}
+                                {sourceDocumentId && onOpenSource ? (
+                                  <button type="button" className="citation-source-link" onClick={() => onOpenSource(sourceDocumentId, source.chunk_index)}>
                                     {sourceLabel(source)}
                                   </button>
                                 ) : <span>{sourceLabel(source)}</span>}
@@ -1370,8 +1378,8 @@ ${displayQuestion}`
                                   </p>
                                 )}
                               </li>
-                            ),
-                          )}
+                            )
+                          })}
                         </ul>
                       </div>
                     )}

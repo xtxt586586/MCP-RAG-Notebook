@@ -7,7 +7,14 @@ from uuid import UUID
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Document, GraphEntity, GraphMention, GraphRelation, Note
+from app.models import (
+    Document,
+    GraphEntity,
+    GraphMention,
+    GraphRelation,
+    KnowledgeBase,
+    Note,
+)
 from app.services.llm.deepseek_service import deepseek_service
 
 
@@ -299,21 +306,28 @@ class KnowledgeGraphService:
         for relation, subject, object_ in rows:
             source_key = (relation.source_type, relation.source_id)
             if source_key not in sources:
-                source: Note | Document | None = None
-                model = Note if relation.source_type == "note" else Document
-                source_result = await db.execute(
-                    select(model).where(
-                        model.id == relation.source_id,
-                        model.user_id == user_id,
-                        model.knowledge_base_id == knowledge_base_id,
+                if relation.source_type == "note":
+                    source_result = await db.execute(
+                        select(Note.title).where(
+                            Note.id == relation.source_id,
+                            Note.user_id == user_id,
+                            Note.knowledge_base_id == knowledge_base_id,
+                        )
                     )
-                )
-                source = source_result.scalar_one_or_none()
-                title = (
-                    source.title if isinstance(source, Note)
-                    else source.file_name if source is not None
-                    else "未知来源"
-                )
+                else:
+                    source_result = await db.execute(
+                        select(Document.file_name)
+                        .join(
+                            KnowledgeBase,
+                            Document.knowledge_base_id == KnowledgeBase.id,
+                        )
+                        .where(
+                            Document.id == relation.source_id,
+                            Document.knowledge_base_id == knowledge_base_id,
+                            KnowledgeBase.user_id == user_id,
+                        )
+                    )
+                title = source_result.scalar_one_or_none() or "未知来源"
                 sources[source_key] = {
                     "source_type": relation.source_type,
                     "source_id": str(relation.source_id),

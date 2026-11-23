@@ -760,6 +760,86 @@ test('user can ask a knowledge-base question and see streamed answer', async ({ 
   await expect(page.getByRole('button', { name: '已保存为笔记' })).toBeVisible()
 })
 
+test('graph citations open their backing document', async ({ page }) => {
+  await mockAuthenticatedBackend(page)
+  await page.route('**/api/v1/documents?*', (route) =>
+    route.fulfill({
+      json: {
+        items: [{
+          id: 'document-graph',
+          knowledge_base_id: knowledgeBase.id,
+          file_name: 'workshop.md',
+          size_bytes: 20,
+          status: 'READY',
+        }],
+        count: 1,
+        knowledge_base_id: knowledgeBase.id,
+      },
+    }),
+  )
+  await page.route('**/api/v1/documents/document-graph/content', (route) =>
+    route.fulfill({ contentType: 'text/plain', body: '工作坊来源文档正文' }),
+  )
+  await page.route('**/api/v1/documents/document-graph/chunks', (route) =>
+    route.fulfill({ json: { items: [], count: 0 } }),
+  )
+  await page.route('**/api/v1/agent/chat/stream', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'text/event-stream',
+      body: [
+        'event: token',
+        'data: {"type":"token","content":"青杉工作坊由青杉工作坊举办。[图谱1]"}',
+        '',
+        'event: done',
+        'data: {"type":"done","conversation_id":"conversation-graph","sources":[{"citation":"[图谱1]","source_type":"document","source_id":"document-graph","title":"workshop.md"}]}',
+        '',
+      ].join('\n'),
+    }),
+  )
+
+  await page.goto('/?view=welcome')
+  await page.getByRole('button', { name: 'AI 对话' }).click()
+  await page.getByPlaceholder('随心输入').fill('青杉工作坊由谁举办？')
+  await page.getByRole('button', { name: '发送' }).click()
+
+  await expect(page.locator('.citation-panel li')).toContainText('[图谱1]')
+  const citationButton = page.getByRole('button', { name: 'workshop.md' })
+  await expect(citationButton).toBeVisible()
+  await citationButton.click()
+  await expect(page.getByRole('dialog').getByRole('heading', { name: 'workshop.md' })).toBeVisible()
+  await expect(page.getByText('工作坊来源文档正文', { exact: true })).toBeVisible()
+})
+
+test('separate citations from one PDF open the corresponding chunks', async ({ page }) => {
+  await mockAuthenticatedBackend(page)
+  await page.route('**/api/v1/documents?*', (route) => route.fulfill({ json: {
+    items: [{ id: 'document-pdf', knowledge_base_id: knowledgeBase.id, file_name: 'guide.pdf', size_bytes: 100, status: 'READY' }],
+    count: 1, knowledge_base_id: knowledgeBase.id,
+  } }))
+  await page.route('**/api/v1/documents/document-pdf/content', (route) => route.fulfill({ contentType: 'text/plain', body: '文档正文' }))
+  await page.route('**/api/v1/documents/document-pdf/chunks', (route) => route.fulfill({ json: { items: [
+    { id: 'chunk-0', chunk_index: 0, page_number: 1, source_type: 'document', content: '第一页内容' },
+    { id: 'chunk-1', chunk_index: 1, page_number: 2, source_type: 'document', content: '第二页内容' },
+  ], count: 2 } }))
+  await page.route('**/api/v1/agent/chat/stream', (route) => route.fulfill({
+    status: 200, contentType: 'text/event-stream', body: [
+      'event: token', 'data: {"type":"token","content":"第一页[资料1]，第二页[资料2]。"}', '',
+      'event: done', 'data: {"type":"done","conversation_id":"conversation-pdf","sources":[{"citation":"[资料1]","document_id":"document-pdf","file_name":"guide.pdf","chunk_index":0,"page_number":1},{"citation":"[资料2]","document_id":"document-pdf","file_name":"guide.pdf","chunk_index":1,"page_number":2}]}', '',
+    ].join('\n'),
+  }))
+  for (const [citation, content] of [['[资料1]', '第一页内容'], ['[资料2]', '第二页内容']]) {
+    await page.goto('/?view=welcome')
+    await page.getByRole('button', { name: 'AI 对话' }).click()
+    await page.getByPlaceholder('随心输入').fill('文档说了什么？')
+    await page.getByRole('button', { name: '发送' }).click()
+    const sources = page.locator('.citation-panel li')
+    await expect(sources).toHaveCount(2)
+    await sources.filter({ hasText: citation }).getByRole('button', { name: 'guide.pdf' }).click()
+    await expect(page.locator('.document-chunk-card.is-cited')).toContainText(content)
+  }
+})
+
 test('chat restores an unsent question after the page reloads', async ({ page }) => {
   await mockAuthenticatedBackend(page)
   await page.goto('/?view=chat')

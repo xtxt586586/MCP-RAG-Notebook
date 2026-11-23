@@ -1,8 +1,13 @@
 export interface CitationSource {
+  citation?: string
   document_id?: string
+  chunk_id?: string
   file_name?: string
   chunk_index?: number
   page_number?: number
+  source_type?: 'document' | 'note'
+  source_id?: string
+  title?: string
   content?: string
   text?: string
   excerpt?: string

@@ -1,3 +1,4 @@
+import json
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from uuid import uuid4
@@ -11,6 +12,7 @@ from app.api.v1 import chat
 @pytest.mark.asyncio
 async def test_knowledge_only_does_not_call_general_model_when_no_sources(monkeypatch):
     user_id, kb_id, conversation_id = uuid4(), uuid4(), uuid4()
+    db = object()
     monkeypatch.setattr(chat, "ensure_owned_knowledge_base", AsyncMock())
     monkeypatch.setattr(chat, "get_or_create_conversation", AsyncMock(return_value=SimpleNamespace(id=conversation_id)))
     monkeypatch.setattr(chat, "save_message_pair", AsyncMock())
@@ -22,16 +24,18 @@ async def test_knowledge_only_does_not_call_general_model_when_no_sources(monkey
     monkeypatch.setattr(chat.deepseek_service, "generate", general)
     response = await chat.chat_with_knowledge_base(
         chat.ChatRequest(knowledge_base_id=kb_id, question="测试问题", require_sources=True),
-        current_user=SimpleNamespace(id=user_id), db=object(),
+        current_user=SimpleNamespace(id=user_id), db=db,
     )
     assert response.answer == "根据当前知识库资料无法确定。"
     assert response.sources == []
+    assert chat.rag_service.answer.await_args.kwargs["db"] is db
     general.assert_not_awaited()
 
 
 @pytest.mark.asyncio
 async def test_knowledge_only_stream_returns_no_sources_fallback(monkeypatch):
     user_id, kb_id, conversation_id = uuid4(), uuid4(), uuid4()
+    db = object()
     monkeypatch.setattr(chat, "ensure_owned_knowledge_base", AsyncMock())
     monkeypatch.setattr(chat, "get_or_create_conversation", AsyncMock(return_value=SimpleNamespace(id=conversation_id)))
     monkeypatch.setattr(chat, "save_message", AsyncMock())
@@ -44,12 +48,72 @@ async def test_knowledge_only_stream_returns_no_sources_fallback(monkeypatch):
     monkeypatch.setattr(chat.deepseek_service, "stream_generate", unexpected_stream)
     response = await chat.stream_chat_with_knowledge_base(
         chat.ChatRequest(knowledge_base_id=kb_id, question="测试问题", require_sources=True),
-        current_user=SimpleNamespace(id=user_id), db=object(),
+        current_user=SimpleNamespace(id=user_id), db=db,
     )
     chunks = [part async for part in response.body_iterator]
     text = "".join(part.decode() if isinstance(part, bytes) else part for part in chunks)
     assert "根据当前知识库资料无法确定。" in text
     assert "event: done" in text
+    assert chat.rag_service.prepare_streaming_answer.await_args.kwargs["db"] is db
+
+
+@pytest.mark.asyncio
+async def test_stream_emits_and_persists_only_sources_cited_by_answer(monkeypatch):
+    user_id, kb_id, conversation_id = uuid4(), uuid4(), uuid4()
+    db = object()
+    source_one = {"citation": "[资料1]", "file_name": "library.md"}
+    source_two = {"citation": "[资料2]", "file_name": "workshop.md"}
+    graph_source = {"citation": "[图谱1]", "file_name": "Library entity"}
+    saved_messages = []
+
+    monkeypatch.setattr(chat, "ensure_owned_knowledge_base", AsyncMock())
+    monkeypatch.setattr(
+        chat,
+        "get_or_create_conversation",
+        AsyncMock(return_value=SimpleNamespace(id=conversation_id)),
+    )
+    monkeypatch.setattr(
+        chat.rag_service,
+        "prepare_streaming_answer",
+        AsyncMock(return_value={
+            "query": "图书馆几点闭馆？",
+            "retrieval_query": "图书馆几点闭馆？",
+            "messages": [{"role": "user", "content": "图书馆几点闭馆？"}],
+            "fallback_answer": None,
+            "retrieval_mode": "hybrid",
+            "sources": [source_one, source_two, graph_source],
+        }),
+    )
+
+    async def fake_stream_generate(**_kwargs):
+        yield "周一至周五 20:00 闭馆。[资料1]，图谱关系见[图谱1]。"
+
+    async def capture_message(**kwargs):
+        saved_messages.append(kwargs)
+
+    monkeypatch.setattr(chat.deepseek_service, "stream_generate", fake_stream_generate)
+    monkeypatch.setattr(chat, "save_message", capture_message)
+
+    response = await chat.stream_chat_with_knowledge_base(
+        chat.ChatRequest(knowledge_base_id=kb_id, question="图书馆几点闭馆？", require_sources=True),
+        current_user=SimpleNamespace(id=user_id),
+        db=db,
+    )
+    chunks = [part async for part in response.body_iterator]
+    text = "".join(part.decode() if isinstance(part, bytes) else part for part in chunks)
+
+    assert text.index("event: token") < text.index("event: sources") < text.index("event: done")
+    sources_event = next(
+        line.removeprefix("data: ")
+        for frame in text.split("\n\n")
+        if frame.startswith("event: sources")
+        for line in frame.splitlines()
+        if line.startswith("data: ")
+    )
+    assert json.loads(sources_event)["sources"] == [source_one, graph_source]
+    assistant_message = next(item for item in saved_messages if item["role"] == "assistant")
+    assert assistant_message["citations"] == [source_one, graph_source]
+    assert chat.rag_service.prepare_streaming_answer.await_args.kwargs["db"] is db
 
 
 @pytest.mark.asyncio
@@ -67,3 +131,17 @@ async def test_knowledge_only_surfaces_retrieval_failure(monkeypatch):
             current_user=SimpleNamespace(id=user_id), db=object(),
         )
     assert exc.value.status_code == 503
+
+
+def test_chat_response_source_schema_accepts_graph_source():
+    source = chat.CitationSource.model_validate({
+        "citation": "[图谱1]",
+        "source_type": "document",
+        "source_id": str(uuid4()),
+        "title": "workshop.md",
+    })
+
+    assert source.citation == "[图谱1]"
+    assert source.source_type == "document"
+    assert source.title == "workshop.md"
+    assert source.document_id is None

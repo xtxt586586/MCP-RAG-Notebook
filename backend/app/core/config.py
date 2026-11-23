@@ -135,12 +135,7 @@ class Settings(BaseSettings):
     mcp_agent_allowed_tools: str = (
         "rag_notebook:create_note,"
         "rag_notebook:search_notes,"
-        "rag_notebook:summarize_document,"
-        "filesystem:list_allowed_directories,"
-        "filesystem:list_directory,"
-        "filesystem:read_text_file,"
-        "filesystem:search_files,"
-        "fetch:fetch"
+        "rag_notebook:summarize_document"
     )
 
     mcp_agent_max_steps: int = 4
@@ -163,13 +158,7 @@ class Settings(BaseSettings):
         "memory:delete_relations,"
         "memory:read_graph,"
         "memory:search_nodes,"
-        "memory:open_nodes,"
-        "filesystem:list_allowed_directories,"
-        "filesystem:list_directory,"
-        "filesystem:read_text_file,"
-        "filesystem:search_files,"
-        "filesystem:get_file_info,"
-        "fetch:fetch"
+        "memory:open_nodes"
     )
 
     celery_broker_url: str = (
@@ -213,12 +202,7 @@ class Settings(BaseSettings):
         "memory:delete_relations,"
         "memory:read_graph,"
         "memory:search_nodes,"
-        "memory:open_nodes,"
-        "filesystem:list_allowed_directories,"
-        "filesystem:list_directory,"
-        "filesystem:read_text_file,"
-        "filesystem:search_files,"
-        "fetch:fetch"
+        "memory:open_nodes"
     )
 
 
