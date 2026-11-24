@@ -215,9 +215,9 @@ async def _find_ready_content_duplicate(
 ) -> Document | None:
     """Find an already indexed copy, including legacy rows without hashes.
 
-    The original project deduplicates successful uploads by content MD5, not
-    by display name.  Legacy rows created before ``content_md5`` existed are
-    lazily backfilled only when their size makes a comparison worthwhile.
+    Deduplication uses content MD5, not display name. Legacy rows created
+    before ``content_md5`` existed are lazily backfilled when their size
+    makes a comparison worthwhile.
     """
     result = await db.execute(
         select(Document)
